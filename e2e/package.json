@@ -2,13 +2,17 @@
   "name": "e2e",
   "version": "1.0.0",
   "private": true,
+  "scripts": {
+    "test": "mobilewright test",
+    "test:smoke": "mobilewright test --grep @smoke",
+    "test:list": "mobilewright test --list",
+    "typecheck": "tsc -p .",
+    "report": "playwright show-report mobilewright-report"
+  },
   "devDependencies": {
     "@mobilewright/test": "^0.0.67",
     "@types/node": "^24.19.2",
     "mobilewright": "^0.0.67",
     "typescript": "^7.0.2"
-  },
-  "scripts": {
-    "test": "mobilewright test"
   }
 }

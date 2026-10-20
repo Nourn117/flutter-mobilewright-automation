@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -29,6 +30,12 @@ class App extends StatelessWidget {
           darkTheme: AppTheme.dark(),
           themeMode: mode,
           home: const LoginPage(),
+          builder: (context, child) => GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () =>
+                FocusManager.instance.primaryFocus?.unfocus(),
+            child: child,
+          ),
         ),
       ),
     );

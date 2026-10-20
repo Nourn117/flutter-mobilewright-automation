@@ -24,7 +24,7 @@ class HomePage extends StatelessWidget {
     if (id == TestIds.navCart) {
       child = Badge(
         isLabelVisible: badge > 0,
-        label: TestId(TestIds.cartBadge, child: Text('$badge')),
+        label: TestId(TestIds.cartBadge, child: Text('$badge', semanticsLabel: 'Cart items: $badge')),
         child: child,
       );
     }
