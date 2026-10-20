@@ -1,0 +1,14 @@
+{
+  "name": "e2e",
+  "version": "1.0.0",
+  "private": true,
+  "devDependencies": {
+    "@mobilewright/test": "^0.0.67",
+    "@types/node": "^24.19.2",
+    "mobilewright": "^0.0.67",
+    "typescript": "^7.0.2"
+  },
+  "scripts": {
+    "test": "mobilewright test"
+  }
+}
