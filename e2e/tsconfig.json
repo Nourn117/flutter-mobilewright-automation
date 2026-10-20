@@ -12,6 +12,7 @@
   },
   "include": [
     "mobilewright.config.ts",
+    "src/**/*.ts",
     "tests/**/*.ts"
   ]
 }
