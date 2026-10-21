@@ -48,10 +48,10 @@ export class CheckoutPage extends BasePage {
     await this.fill(this.address, address);
   }
 
-  async openDatePicker(): Promise<void> {
-    await this.tap(this.deliveryDate);
-    await expect(this.byText('Select delivery date')).toBeVisible();
-  }
+   async openDatePicker(): Promise<void> {
+      await this.tap(this.deliveryDate);
+      await expect(this.byText('OK')).toBeVisible();
+   }
 
   async cancelDatePicker(): Promise<void> {
     await this.byText('Cancel').tap();
