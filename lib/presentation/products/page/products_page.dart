@@ -127,6 +127,7 @@ class _ProductGrid extends StatelessWidget {
       itemBuilder: (context, i) {
         final product = products[i];
         return ProductCard(
+          key: ValueKey(product.id),
           product: product,
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute<void>(
