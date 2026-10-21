@@ -1,0 +1,145 @@
+name: E2E (Android)
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Which tests to run'
+        type: choice
+        options: ['@P1', '@P1|@P2', 'all']
+        default: '@P1'
+
+permissions:
+  contents: read
+  checks: write
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Mobilewright on Android emulator
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+
+    steps:
+      - name: Free disk space (keep the Android SDK)
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          android: false
+          tool-cache: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # ---------- Build the app (release = fast UI reads) ----------
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Build release APK
+        run: |
+          flutter pub get
+          flutter build apk --release
+          # The Gradle daemon keeps ~2 GB of RAM; the emulator needs it more.
+          (cd android && ./gradlew --stop) || true
+
+      # ---------- Install the test framework ----------
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Install e2e dependencies
+        working-directory: e2e
+        run: npm ci
+
+      - name: Typecheck tests
+        working-directory: e2e
+        run: npm run typecheck
+
+      # ---------- Run on an Android emulator ----------
+      - name: Enable KVM (hardware acceleration for the emulator)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run tests on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          SUITE: ${{ github.event.inputs.suite || '@P1' }}
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          ram-size: 4096M
+          heap-size: 512M
+          disk-size: 6000M
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          working-directory: e2e
+          script: |
+            adb install -r ../build/app/outputs/flutter-apk/app-release.apk
+            mkdir -p diagnostics
+            # Warm-up: the first launch after install is very slow on CI (no GPU), so open the app once before testing.
+            adb shell monkey -p com.nouran.mobilewright_demo_app -c android.intent.category.LAUNCHER 1
+            sleep 20
+            adb exec-out screencap -p > diagnostics/after-launch.png
+            adb shell dumpsys window | grep -E "mCurrentFocus|mFocusedApp" > diagnostics/focus.txt || true
+            adb logcat -d -b crash > diagnostics/crash.txt || true
+            adb logcat -d | grep -iE "flutter|AndroidRuntime|FATAL" | tail -300 > diagnostics/flutter.txt || true
+            adb shell uiautomator dump /sdcard/ui.xml && adb pull /sdcard/ui.xml diagnostics/ui.xml || true
+            if [ "$SUITE" = "all" ]; then npx mobilewright test; else npx mobilewright test --grep "$SUITE"; fi
+
+      # ---------- Reports ----------
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostics
+          path: e2e/diagnostics
+          retention-days: 7
+
+      - name: Publish test results
+        if: always()
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: e2e/test-results/junit.xml
+          check_name: E2E results
+          detailed_summary: true
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobilewright-report
+          path: e2e/mobilewright-report
+          retention-days: 14
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: e2e/test-results
+          retention-days: 14

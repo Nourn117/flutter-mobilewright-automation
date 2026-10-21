@@ -4,8 +4,7 @@ import type { Locator, Screen } from 'mobilewright';
 type ScrollDirection = 'up' | 'down';
 
 /** First screen after an app relaunch can take a while on a Flutter debug build. */
-export const APP_START_TIMEOUT = 30_000;
-
+export const APP_START_TIMEOUT = process.env.CI ? 60_000 : 30_000;
 /** Time for the keyboard close animation (and the layout shift it causes) to finish. */
 const KEYBOARD_SETTLE_MS = 800;
 
