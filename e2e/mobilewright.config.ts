@@ -9,7 +9,9 @@ export default defineConfig({
   workers: 1,
   fullyParallel: false,
 
-  // Flutter debug builds on an emulator are slower than release builds.
+  // Retry once locally (emulator hiccups), twice on CI.
+  retries: process.env.CI ? 2 : 1,
+
   timeout: 120_000,
   expect: { timeout: 10_000 },
   use: {
@@ -17,5 +19,12 @@ export default defineConfig({
     animations: 'off',
   },
 
-  reporter: [['list'], ['html', { open: 'never' }]],
+  // Attach the screen's element tree to every failed test (easier debugging).
+  viewTree: 'on-failure',
+
+  reporter: [
+    ['list'],
+    ['html', { open: 'never' }],
+    ['junit', { outputFile: 'test-results/junit.xml' }],
+  ],
 });
