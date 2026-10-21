@@ -23,6 +23,20 @@ export class CartPage extends BasePage {
   async expectEmpty(): Promise<void> {
     await expect(this.empty).toBeVisible();
     await this.expectMessage(Messages.cart.emptyTitle);
+    await this.expectMessage(Messages.cart.emptyMessage);
+  }
+
+  minusButton(product: Product) {
+    return this.byId(TestIds.cartItemMinus(product.id)).getByText('Decrease quantity');
+  }
+
+  plusButton(product: Product) {
+    return this.byId(TestIds.cartItemPlus(product.id)).getByText('Increase quantity');
+  }
+
+  /** Exact subtotal label, e.g. "Subtotal (3 items)". */
+  async expectSubtotalLabel(label: string): Promise<void> {
+    await expect(this.byText(label)).toBeVisible();
   }
 
   async startShopping(): Promise<void> {

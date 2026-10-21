@@ -58,6 +58,15 @@ export class RegisterPage extends BasePage {
     await this.expectMessage(`You can now log in with ${email}.`);
   }
 
+  async expectNoSuccessDialog(): Promise<void> {
+    await expect(this.successDialog).toBeHidden();
+  }
+
+  /** Taps the dimmed area above the dialog (top-left corner of the screen). */
+  async tapOutsideDialog(): Promise<void> {
+    await this.screen.tap(100, 400);
+  }
+
   async confirmSuccess(): Promise<void> {
     await this.successOk.tap();
   }

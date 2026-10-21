@@ -24,6 +24,11 @@ export class OrderSuccessPage extends BasePage {
     await expect(this.total).toHaveText(formatPrice(total));
   }
 
+  async expectSummary(summary: { slot: string; payment: string }): Promise<void> {
+    await this.expectMessage(summary.slot);
+    await this.expectMessage(summary.payment);
+  }
+
   async backToShopping(): Promise<void> {
     await this.backHomeButton.tap();
   }

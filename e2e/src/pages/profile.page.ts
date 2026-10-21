@@ -5,6 +5,7 @@ import type { User } from '../data/users';
 import { BasePage } from './base.page';
 
 export class ProfilePage extends BasePage {
+  readonly title = this.byText('Profile');
   readonly name = this.byId(TestIds.profileName);
   readonly email = this.byId(TestIds.profileEmail);
   readonly darkMode = this.byId(TestIds.profileDarkMode);

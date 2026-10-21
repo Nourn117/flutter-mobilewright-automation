@@ -12,6 +12,9 @@ export class ProductDetailsPage extends BasePage {
   readonly minus = this.byId(TestIds.detailsQtyMinus);
   readonly plus = this.byId(TestIds.detailsQtyPlus);
   readonly addToCartButton = this.byId(TestIds.detailsAddToCart);
+  /** The real buttons (the ids sit on wrappers; the buttons carry the enabled state). */
+  readonly minusButton = this.minus.getByText('Decrease quantity');
+  readonly plusButton = this.plus.getByText('Increase quantity');
 
   async expectProduct(product: Product): Promise<void> {
     await expect(this.name).toHaveText(product.name);
@@ -40,6 +43,10 @@ export class ProductDetailsPage extends BasePage {
   async expectAddButtonTotal(total: number): Promise<void> {
     // The id sits on a wrapper; the button text is on its child node.
     await expect(this.addToCartButton.getByText(formatPrice(total), { exact: false })).toBeVisible();
+  }
+
+  async expectDescriptionSection(): Promise<void> {
+    await this.expectMessage('About this product');
   }
 
   async addToCart(): Promise<void> {

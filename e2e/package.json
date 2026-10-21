@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "test": "mobilewright test",
-    "test:smoke": "mobilewright test --grep @smoke",
+    "test:smoke": "mobilewright test --grep @P1",
+    "test:regression": "mobilewright test --grep \"@P1|@P2\"",
     "test:list": "mobilewright test --list",
     "typecheck": "tsc -p .",
     "report": "playwright show-report mobilewright-report"
