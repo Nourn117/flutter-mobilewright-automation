@@ -8,7 +8,7 @@ on:
       suite:
         description: 'Which tests to run'
         type: choice
-        options: ['@P1', '@P1', '@P1|@P2', 'all']
+        options: ['@P1', '@P1|@P2', 'all']
         default: '@P1'
 
 permissions:
@@ -22,16 +22,27 @@ concurrency:
 jobs:
   e2e:
     name: Mobilewright on Android emulator
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 120
 
     steps:
+      - name: Free disk space (keep the Android SDK)
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          android: false
+          tool-cache: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # ---------- Build the app (release = fast UI reads) ----------
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -46,10 +57,12 @@ jobs:
         run: |
           flutter pub get
           flutter build apk --release
+          # The Gradle daemon keeps ~2 GB of RAM; the emulator needs it more.
+          (cd android && ./gradlew --stop) || true
 
       # ---------- Install the test framework ----------
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: npm
@@ -73,7 +86,6 @@ jobs:
       - name: Run tests on emulator
         uses: reactivecircus/android-emulator-runner@v2
         env:
-          # TEMP while debugging CI: run 2 tests only. Switch back to '@P1' when green.
           SUITE: ${{ github.event.inputs.suite || '@P1' }}
         with:
           api-level: 34
@@ -81,11 +93,15 @@ jobs:
           target: google_apis
           profile: pixel_6
           disable-animations: true
+          ram-size: 4096M
+          heap-size: 512M
+          disk-size: 6000M
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           working-directory: e2e
           script: |
             adb install -r ../build/app/outputs/flutter-apk/app-release.apk
             mkdir -p diagnostics
+            # Warm-up: the first launch after install is very slow on CI (no GPU), so open the app once before testing.
             adb shell monkey -p com.nouran.mobilewright_demo_app -c android.intent.category.LAUNCHER 1
             sleep 20
             adb exec-out screencap -p > diagnostics/after-launch.png
