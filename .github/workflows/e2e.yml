@@ -8,8 +8,8 @@ on:
       suite:
         description: 'Which tests to run'
         type: choice
-        options: ['TC-GEN-001|TC-LOGIN-001', '@P1', '@P1|@P2', 'all']
-        default: 'TC-GEN-001|TC-LOGIN-001'
+        options: ['@P1', '@P1', '@P1|@P2', 'all']
+        default: '@P1'
 
 permissions:
   contents: read
@@ -74,7 +74,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         env:
           # TEMP while debugging CI: run 2 tests only. Switch back to '@P1' when green.
-          SUITE: ${{ github.event.inputs.suite || 'TC-GEN-001|TC-LOGIN-001' }}
+          SUITE: ${{ github.event.inputs.suite || '@P1' }}
         with:
           api-level: 34
           arch: x86_64
