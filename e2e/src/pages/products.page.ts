@@ -34,7 +34,7 @@ export class ProductsPage extends BasePage {
   }
 
   async clearSearch(): Promise<void> {
-    await this.search.clear();
+      await this.fill(this.search, '', 'down');
   }
 
   async openProduct(product: Product): Promise<void> {

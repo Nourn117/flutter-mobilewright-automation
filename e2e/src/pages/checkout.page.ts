@@ -1,5 +1,4 @@
 import { expect } from '@mobilewright/test';
-
 import { type CheckoutData, type City, type DeliverySlot, type PaymentMethod } from '../data/checkout';
 import { TestIds } from '../data/test-ids';
 import { formatPrice } from '../utils/format';
@@ -48,10 +47,40 @@ export class CheckoutPage extends BasePage {
     await this.fill(this.address, address);
   }
 
+   async openDatePicker(): Promise<void> {
+      await this.tap(this.deliveryDate);
+      await expect(this.byText('OK')).toBeVisible();
+   }
+
+  async cancelDatePicker(): Promise<void> {
+    await this.byText('Cancel').tap();
+  }
+
   /** Opens the date picker and confirms the default date (tomorrow, the first allowed day). */
   async pickEarliestDeliveryDate(): Promise<void> {
-    await this.tap(this.deliveryDate);
+    await this.openDatePicker();
     await this.byText('OK').tap();
+  }
+
+  /** Text shown inside the delivery date field ("Select a date" or the formatted date). */
+  async expectDeliveryDateText(text: string): Promise<void> {
+       await this.reveal(this.deliveryDate);
+       await this.expectMessage(text);
+  }
+
+  async openCityDropdown(): Promise<void> {
+    await this.tap(this.city);
+  }
+
+  async expectCity(city: City): Promise<void> {
+      await this.reveal(this.city);
+      await this.expectMessage(city);
+  }
+
+  async expectFieldValue(field: 'fullName' | 'phone' | 'address' | 'notes', value: string): Promise<void> {
+    const locator = this[field];
+    await this.reveal(locator, field === 'fullName' ? 'down' : 'up');
+    await expect(locator).toHaveText(value);
   }
 
   async selectSlot(slot: DeliverySlot): Promise<void> {
@@ -87,6 +116,11 @@ export class CheckoutPage extends BasePage {
   /** Taps "Place order" (keyboard is already closed after every fill). */
   async placeOrder(): Promise<void> {
     await this.placeOrderButton.tap();
+  }
+
+  /** Taps "Place order" twice as fast as possible (the second tap may hit a disabled button). */
+  async placeOrderTwice(): Promise<void> {
+    await Promise.allSettled([this.placeOrderButton.tap(), this.placeOrderButton.tap()]);
   }
 
   async expectTotal(total: number): Promise<void> {

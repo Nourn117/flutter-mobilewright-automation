@@ -22,6 +22,28 @@ export class LoginPage extends BasePage {
     await expect(this.loginButton).toBeVisible();
   }
 
+  /** Taps "Log in" without filling anything (or after filling some fields). */
+  async submit(): Promise<void> {
+    await this.tap(this.loginButton);
+  }
+
+  async fillEmail(email: string): Promise<void> {
+    await this.fill(this.email, email);
+  }
+
+  async fillPassword(password: string): Promise<void> {
+    await this.fill(this.password, password);
+  }
+
+  /** Types the password and submits with the keyboard action key instead of the button. */
+  async loginWithKeyboard(email: string, password: string): Promise<void> {
+    await this.fillEmail(email);
+    await this.password.tap();
+    await expect(this.password).toBeFocused();
+    await this.password.fill(password);
+    await this.screen.pressButton('ENTER');
+  }
+
   async login(email: string, password: string): Promise<void> {
     await this.fill(this.email, email);
     await this.fill(this.password, password);
@@ -45,6 +67,15 @@ export class LoginPage extends BasePage {
   }
 
   async expectEmail(value: string): Promise<void> {
-    await expect(this.email).toHaveValue(value);
+    await expect(this.email).toHaveText(value);
+  }
+
+  /** The toggle's tooltip says what tapping it will do: "Show password" or "Hide password". */
+  async expectPasswordToggle(label: 'Show password' | 'Hide password'): Promise<void> {
+    await expect(this.passwordToggle.getByText(label)).toBeVisible();
+  }
+
+  async expectNoError(): Promise<void> {
+    await expect(this.error).toBeHidden();
   }
 }

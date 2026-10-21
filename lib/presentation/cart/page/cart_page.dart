@@ -48,6 +48,7 @@ class CartPage extends StatelessWidget {
                   itemBuilder: (context, i) {
                     final item = state.items[i];
                     return CartItemTile(
+                      key: ValueKey(item.product.id),
                       item: item,
                       onQuantityChanged: (q) =>
                           cart.setQuantity(item.product.id, q),

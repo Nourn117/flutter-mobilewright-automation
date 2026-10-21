@@ -1,6 +1,7 @@
 import { test as base, expect } from '@mobilewright/test';
 
 import { users } from '../data/users';
+import { CheckoutFlow } from '../flows/checkout.flow';
 import { ShoppingFlow } from '../flows/shopping.flow';
 import { AddedToCartSheet } from '../pages/added-to-cart.sheet';
 import { CartPage } from '../pages/cart.page';
@@ -28,6 +29,7 @@ type Pages = {
 
 type Flows = {
   shopping: ShoppingFlow;
+  checkoutFlow: CheckoutFlow;
   /** Logs in as the standard user before the test and lands on the Shop tab. */
   loggedIn: HomePage;
 };
@@ -51,6 +53,9 @@ export const test = base.extend<Pages & Flows>({
 
   shopping: async ({ homePage, productsPage, detailsPage, addedSheet }, use) =>
     use(new ShoppingFlow(homePage, productsPage, detailsPage, addedSheet)),
+
+  checkoutFlow: async ({ shopping, cartPage, checkoutPage, orderSuccessPage }, use) =>
+    use(new CheckoutFlow(shopping, cartPage, checkoutPage, orderSuccessPage)),
 
   loggedIn: async ({ loginPage, homePage, productsPage }, use) => {
     await loginPage.expectLoaded();

@@ -5,6 +5,7 @@ import type { User } from '../data/users';
 import { BasePage } from './base.page';
 
 export class ProfilePage extends BasePage {
+  readonly title = this.byText('Profile');
   readonly name = this.byId(TestIds.profileName);
   readonly email = this.byId(TestIds.profileEmail);
   readonly darkMode = this.byId(TestIds.profileDarkMode);
@@ -21,13 +22,14 @@ export class ProfilePage extends BasePage {
     await this.darkMode.setChecked(enabled);
   }
 
-  async expectDarkMode(enabled: boolean): Promise<void> {
-    if (enabled) {
-      await expect(this.darkMode).toBeChecked();
-    } else {
-      await expect(this.darkMode).not.toBeChecked();
-    }
-  }
+   async expectDarkMode(enabled: boolean): Promise<void> {
+      const toggle = this.darkMode.getByText('Dark mode');
+      if (enabled) {
+        await expect(toggle).toBeChecked();
+      } else {
+        await expect(toggle).not.toBeChecked();
+      }
+   }
 
   async openLogoutDialog(): Promise<void> {
     await this.logoutButton.tap();
