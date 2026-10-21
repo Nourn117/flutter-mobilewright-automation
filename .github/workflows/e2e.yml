@@ -8,8 +8,8 @@ on:
       suite:
         description: 'Which tests to run'
         type: choice
-        options: ['@P1', '@P1|@P2', 'all']
-        default: '@P1'
+        options: ['TC-GEN-001|TC-LOGIN-001', '@P1', '@P1|@P2', 'all']
+        default: 'TC-GEN-001|TC-LOGIN-001'
 
 permissions:
   contents: read
@@ -73,7 +73,8 @@ jobs:
       - name: Run tests on emulator
         uses: reactivecircus/android-emulator-runner@v2
         env:
-          SUITE: ${{ github.event.inputs.suite || '@P1' }}
+          # TEMP while debugging CI: run 2 tests only. Switch back to '@P1' when green.
+          SUITE: ${{ github.event.inputs.suite || 'TC-GEN-001|TC-LOGIN-001' }}
         with:
           api-level: 34
           arch: x86_64
@@ -84,9 +85,25 @@ jobs:
           working-directory: e2e
           script: |
             adb install -r ../build/app/outputs/flutter-apk/app-release.apk
+            mkdir -p diagnostics
+            adb shell monkey -p com.nouran.mobilewright_demo_app -c android.intent.category.LAUNCHER 1
+            sleep 20
+            adb exec-out screencap -p > diagnostics/after-launch.png
+            adb shell dumpsys window | grep -E "mCurrentFocus|mFocusedApp" > diagnostics/focus.txt || true
+            adb logcat -d -b crash > diagnostics/crash.txt || true
+            adb logcat -d | grep -iE "flutter|AndroidRuntime|FATAL" | tail -300 > diagnostics/flutter.txt || true
+            adb shell uiautomator dump /sdcard/ui.xml && adb pull /sdcard/ui.xml diagnostics/ui.xml || true
             if [ "$SUITE" = "all" ]; then npx mobilewright test; else npx mobilewright test --grep "$SUITE"; fi
 
       # ---------- Reports ----------
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostics
+          path: e2e/diagnostics
+          retention-days: 7
+
       - name: Publish test results
         if: always()
         uses: mikepenz/action-junit-report@v4
