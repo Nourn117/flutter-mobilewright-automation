@@ -1,5 +1,4 @@
 import { expect } from '@mobilewright/test';
-
 import { type CheckoutData, type City, type DeliverySlot, type PaymentMethod } from '../data/checkout';
 import { TestIds } from '../data/test-ids';
 import { formatPrice } from '../utils/format';
@@ -65,8 +64,8 @@ export class CheckoutPage extends BasePage {
 
   /** Text shown inside the delivery date field ("Select a date" or the formatted date). */
   async expectDeliveryDateText(text: string): Promise<void> {
-    await this.reveal(this.deliveryDate);
-    await expect(this.deliveryDate.getByText(text, { exact: false })).toBeVisible();
+       await this.reveal(this.deliveryDate);
+       await this.expectMessage(text);
   }
 
   async openCityDropdown(): Promise<void> {
@@ -74,8 +73,8 @@ export class CheckoutPage extends BasePage {
   }
 
   async expectCity(city: City): Promise<void> {
-    await this.reveal(this.city);
-    await expect(this.city.getByText(city, { exact: false })).toBeVisible();
+      await this.reveal(this.city);
+      await this.expectMessage(city);
   }
 
   async expectFieldValue(field: 'fullName' | 'phone' | 'address' | 'notes', value: string): Promise<void> {
